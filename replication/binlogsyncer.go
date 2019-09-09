@@ -477,11 +477,10 @@ func (b *BinlogSyncer) writeBinlogDumpMariadbGTIDCommand(gset GTIDSet) error {
 		return errors.Errorf("failed to set @slave_connect_state='%s': %v", startPos, err)
 	}
 
-	// Real slaves set this upon connecting if their gtid_strict_mode option was
-	// enabled. We always use gtid_strict_mode because we need it to make our
-	// internal GTID comparisons safe.
-	if _, err := b.c.Execute("SET @slave_gtid_strict_mode=1"); err != nil {
-		return errors.Errorf("failed to set @slave_gtid_strict_mode=1: %v", err)
+	// According to https://mariadb.com/kb/en/library/5-slave-registration/,
+	// @slave_gtid_strict_mode must set to zero.
+	if _, err := b.c.Execute("SET @slave_gtid_strict_mode=0"); err != nil {
+		return errors.Errorf("failed to set @slave_gtid_strict_mode=0: %v", err)
 	}
 
 	// Since we use @slave_connect_state, the file and position here are ignored.
